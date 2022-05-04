@@ -34,13 +34,12 @@ io.sockets.on(
     console.log(socket.id + " has joined the chat.");
     
     
-    // db.find({}).sort({ timestamp: 1 }).exec(function (err, docs) {
-    // //db.find({}, function(err, docs) {
-    //   // Loop through the results, send each one as if it were a video file
-	  //   for (var i = 0; i < docs.length; i++) {
-    //     socket.emit('memo',docs[i]);
-	  //   }
-    // });
+    db.find({}).sort({ timestamp: 1 }).exec(function (err, docs) {
+      // Loop through the results, send each one as if it were a video file
+	    for (var i = 0; i < docs.length; i++) {
+        io.emit('memo',docs[i]);
+	    }
+    });
 
     
     socket.on("memo", function(data) {
@@ -48,28 +47,24 @@ io.sockets.on(
       var filename = Date.now();
       console.log(data)
 
+       fs.writeFile('js/'+filename, data.memocontent, function(err){
+          // if (err) console.log(err);
+          // console.log("It's saved!")
+        
       var datatosave = {
         username: data.username,
         memocontent:data.memocontent,
         memo: filename,
         timestamp: Date.now(),
       };
+        
+          db.insert(datatosave, function (err, newDocs) {
+            console.log("err: " + err);
+            console.log("newDocs: " + newDocs);
+          });
 
-      io.emit('memo',datatosave);
-      // fs.writeFile('js/'+filename, data.memocontent, function(err){
-      //     if (err) console.log(err);
-      //     console.log("It's saved!")
-        
-      //     // Create a JavaScript Object with data to store
-       
-        
-      //     db.insert(datatosave, function (err, newDocs) {
-      //       console.log("err: " + err);
-      //       console.log("newDocs: " + newDocs);
-      //     });
-        
-      //     socket.emit('memo',datatosave);
-      // });      
+          io.emit('memo',datatosave);
+      });      
     });
 
     socket.on("disconnect", function () {
